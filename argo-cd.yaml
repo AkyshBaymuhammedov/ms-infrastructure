@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argo-app
+  name: argo-cd
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/AkyshBaymuhammedov/ms-infrastructure.git
     targetRevision: HEAD
-    path: dev
+    path: manifests
   destination:
     server: https://kubernetes.default.svc
 
