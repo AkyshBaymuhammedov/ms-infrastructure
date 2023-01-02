@@ -8,9 +8,7 @@ spec:
   source:
     repoURL: https://github.com/AkyshBaymuhammedov/ms-infrastructure.git
     targetRevision: HEAD
-    path: dev/namespaces
-    directory:
-      recurse: true
+    path: dev
   destination:
     server: https://kubernetes.default.svc
 
