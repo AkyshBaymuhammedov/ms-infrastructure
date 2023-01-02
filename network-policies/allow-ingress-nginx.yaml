@@ -1,0 +1,14 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-nginx.yaml
+  namespace: simple-webserver
+spec:
+  podSelector:
+    matchLabels:
+      app: simple-webserver
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              namespace: nginx-ingress
