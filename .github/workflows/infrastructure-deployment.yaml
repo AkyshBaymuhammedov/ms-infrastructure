@@ -22,3 +22,7 @@ jobs:
 
       - name: Deploy cluster
         run: aks-engine deploy --dns-prefix ${{ secrets.RESOURCE_GROUP }} --resource-group ${{ secrets.RESOURCE_GROUP }} --location ${{ secrets.REGION }} --api-model ${GITHUB_WORKSPACE}/infrastructure/kubernetes.json --auto-suffix --subscription-id ${{ secrets.SUBSCRIPTION_ID }}
+
+      - name: Debug path to kubeconfig
+        run: ls -l
+  
