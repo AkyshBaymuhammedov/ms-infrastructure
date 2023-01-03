@@ -3,6 +3,10 @@ name: Infrastructure Deployment
 on:
   workflow_dispatch:
 
+env:
+  HELM_EXPERIMENTAL_OCI: 1
+  HELM_VERSION_TO_INSTALL: 3.9.0
+
 jobs:
   deploy-cluster:
     runs-on: ubuntu-latest
@@ -78,3 +82,35 @@ jobs:
         run: |
           PUBLIC_IP_NAME=$(az network public-ip list --resource-group ${{ secrets.RESOURCE_GROUP }} --query "[?starts_with(name, 'akysh-micro-assignment')].name" -o json | jq -r '.[0]') && \
           az network public-ip update -g ${{ secrets.RESOURCE_GROUP }} -n $PUBLIC_IP_NAME --dns-name ${{ secrets.RESOURCE_GROUP }} --allocation-method Static
+
+  deploy-apps:
+    needs: configure-dns
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: kubeconfig
+
+      - name: Set kubeconfig
+        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          kubeconfig: ${{ env.KUBECONFIG }}
+        
+      - name: Helm tool installer
+        uses: Azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION_TO_INSTALL }}
+
+      - name: Helm login
+        run: helm registry login ${{ secrets.ACR_REGISTRY }}.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
+
+      - name: Deploy bitcoin-app
+        run: helm upgrade --install bitcoin-app oci://${{ secrets.ACR_REGISTRY }}.azurecr.io/helm/bitcoin-app-helm -n bitcoin-app
+
+      - name: Deploy simple-webserver
+        run: helm upgrade --install simple-webserver oci://${{ secrets.ACR_REGISTRY }}.azurecr.io/helm/simple-webserver-helm -n simple-webserver
