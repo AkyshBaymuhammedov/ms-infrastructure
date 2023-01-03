@@ -67,6 +67,8 @@ jobs:
     needs: configure-cluster
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Wait for nginx-ingress
         run: ./wait_4_deploy.sh app=nginx-ingress-nginx-ingress nginx-ingress nginx-ingress
 
