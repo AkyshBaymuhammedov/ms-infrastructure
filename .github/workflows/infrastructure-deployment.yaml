@@ -53,6 +53,9 @@ jobs:
           kubectl create namespace argocd && \
           kubectl apply -n argocd -f ./argocd/install.yaml
 
+      - name: Wait for ArgoCD to be deployed
+        run: sleep 300s
+
       - name: Deploy manifests
         run: kubectl apply -f ./argocd/manifests-app.yaml
 
@@ -63,6 +66,9 @@ jobs:
     needs: configure-cluster
     runs-on: ubuntu-latest
     steps:
+      - name: Wait for ingress
+        run: sleep 400s
+
       - name: Log in with Azure
         uses: azure/login@v1
         with:
