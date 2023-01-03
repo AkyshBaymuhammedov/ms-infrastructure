@@ -30,7 +30,7 @@ jobs:
           name: kubeconfig
           path: ${{ env.KUBECONFIG_PATH }}
 
-  deploy-argocd:
+  configure-cluster-and-deploy-apps:
     needs: deploy-cluster
     runs-on: ubuntu-latest
     steps:
@@ -48,10 +48,19 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
 
-      - name: Install ArgoCD
+      - name: Deploy ArgoCD
         run: |
           kubectl create namespace argocd && \
           kubectl apply -n argocd -f ./argocd/install.yaml
 
-      - name: Install Manifests app
+      - name: Deploy manifests
         run: kubectl apply -f ./argocd/manifests-app.yaml
+
+      - name: Deploy nginx ingress
+        run: kubectl apply -f ./argocd/nginx-ingress/nginx-ingress-app.yaml
+
+      - name: Deploy bitcoin-app
+        run: kubectl apply -f ./argocd/bitcoin-app/bitcoin-app.yaml
+
+      - name: Deploy simple-webserver
+        run: kubectl apply -f ./argocd/simple-webserver/simple-webserver.yaml
