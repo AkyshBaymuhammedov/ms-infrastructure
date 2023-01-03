@@ -45,12 +45,13 @@ jobs:
           name: kubeconfig
 
       - name: Set kubeconfig
-        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+        id: kubeconfig
+        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_OUTPUT
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ env.KUBECONFIG }}
+          kubeconfig: ${{ steps.kubeconfig.outputs.KUBECONFIG }}
 
       - name: Deploy ArgoCD
         run: |
@@ -63,11 +64,19 @@ jobs:
       - name: Deploy nginx ingress
         run: kubectl apply -f ./argocd/nginx-ingress/nginx-ingress-app.yaml
 
+    outputs:
+      kubeconfig: ${{ steps.kubeconfig.outputs.KUBECONFIG }}
+
   configure-dns:
     needs: configure-cluster
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          kubeconfig: ${{ needs.configure-cluster.outputs.kubeconfig }}
 
       - name: Wait for nginx-ingress
         run: |
@@ -85,22 +94,15 @@ jobs:
           az network public-ip update -g ${{ secrets.RESOURCE_GROUP }} -n $PUBLIC_IP_NAME --dns-name ${{ secrets.RESOURCE_GROUP }} --allocation-method Static
 
   deploy-apps:
-    needs: configure-dns
+    needs: [configure-cluster, configure-dns]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: kubeconfig
-
-      - name: Set kubeconfig
-        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
-
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ env.KUBECONFIG }}
+          kubeconfig: ${{ needs.configure-cluster.outputs.kubeconfig }}
 
       - name: Helm tool installer
         uses: Azure/setup-helm@v3
