@@ -31,7 +31,7 @@ jobs:
           path: ${{ env.KUBECONFIG_PATH }}
 
   deploy-argocd:
-    needs: aks-engine-deploy
+    needs: deploy-cluster
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
