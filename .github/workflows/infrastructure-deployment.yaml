@@ -4,16 +4,15 @@ on:
   workflow_dispatch:
 
 jobs:
-  aks-engine-deploy:
+  deploy-cluster:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
       - name: Install aks-engine
         run: |
-          curl -o get-akse.sh https://raw.githubusercontent.com/Azure/aks-engine/master/scripts/get-akse.sh && \
-          chmod 700 get-akse.sh && \
-          ./get-akse.sh
+          chmod 700 ./aks-engine/get-akse.sh && \
+          ./aks-engine/get-akse.sh
 
       - name: Log in with Azure
         uses: azure/login@v1
@@ -41,5 +40,18 @@ jobs:
         with:
           name: kubeconfig
 
-      - name: Debug current dir
-        run: ls -l
+      - name: Set kubeconfig
+        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json)" >> $GITHUB_ENV
+
+      - name: Kubernetes Set Context
+        uses: Azure/k8s-set-context@v3.0
+        with:
+          kubeconfig: ${{ env.KUBECONFIG }}
+
+      - name: Install ArgoCD
+        run: |
+          kubectl create namespace argocd && \
+          kubectl apply -n argocd -f ./argocd/install.yaml
+
+      - name: Install Manifests app
+        run: kubectl apply -f ./argocd/manifests-app.yaml
