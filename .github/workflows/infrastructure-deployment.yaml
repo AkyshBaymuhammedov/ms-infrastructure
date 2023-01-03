@@ -22,11 +22,6 @@ jobs:
       - name: Deploy cluster
         run: aks-engine deploy --dns-prefix ${{ secrets.RESOURCE_GROUP }} --resource-group ${{ secrets.RESOURCE_GROUP }} --location ${{ secrets.REGION }} --api-model ${GITHUB_WORKSPACE}/infrastructure/kubernetes.json --auto-suffix --subscription-id ${{ secrets.SUBSCRIPTION_ID }}
 
-      - name: Set DNS label
-        run: |
-          PUBLIC_IP_NAME=$(az network public-ip list --resource-group ${{ secrets.RESOURCE_GROUP }} --query "[?starts_with(name, 'akysh-micro-assignment')].name" -o json | jq -r '.[0]') && \
-          az network public-ip update -g ${{ secrets.RESOURCE_GROUP }} -n $PUBLIC_IP_NAME --dns-name ${{ secrets.RESOURCE_GROUP }} --allocation-method Static
-
       - name: Retrieve path to kubeconfig
         run: echo "KUBECONFIG_PATH=$(pwd)/$(find _output -name kubeconfig.westeurope.json)" >> $GITHUB_ENV
 
@@ -63,3 +58,17 @@ jobs:
 
       - name: Deploy nginx ingress
         run: kubectl apply -f ./argocd/nginx-ingress/nginx-ingress-app.yaml
+
+  configure-dns:
+    needs: configure-cluster
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log in with Azure
+        uses: azure/login@v1
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+      - name: Set DNS label
+        run: |
+          PUBLIC_IP_NAME=$(az network public-ip list --resource-group ${{ secrets.RESOURCE_GROUP }} --query "[?starts_with(name, 'akysh-micro-assignment')].name" -o json | jq -r '.[0]') && \
+          az network public-ip update -g ${{ secrets.RESOURCE_GROUP }} -n $PUBLIC_IP_NAME --dns-name ${{ secrets.RESOURCE_GROUP }} --allocation-method Static
