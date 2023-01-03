@@ -30,3 +30,16 @@ jobs:
         with:
           name: kubeconfig
           path: ${{ env.KUBECONFIG_PATH }}
+
+  deploy-argocd:
+    needs: aks-engine-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: kubeconfig
+
+      - name: Debug current dir
+        run: ls -l
