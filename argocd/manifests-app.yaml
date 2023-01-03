@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/AkyshBaymuhammedov/ms-infrastructure.git
     targetRevision: HEAD
-    path: manifests
+    path: argocd/manifests
   destination:
     server: https://kubernetes.default.svc
 
