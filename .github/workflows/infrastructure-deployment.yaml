@@ -41,13 +41,12 @@ jobs:
           name: kubeconfig
 
       - name: Set kubeconfig
-        id: set-kubeconfig
-        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json)" >> $GITHUB_OUTPUT
+        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ steps.set-kubeconfig.outputs.KUBECONFIG }}
+          kubeconfig: ${{ env.KUBECONFIG }}
 
       - name: Install ArgoCD
         run: |
