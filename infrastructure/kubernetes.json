@@ -3,7 +3,8 @@
   "properties": {
     "orchestratorProfile": {
       "kubernetesConfig": {
-        "networkPolicy": "antrea"
+        "networkPolicy": "antrea",
+        "enableRbac": true
       }
     },
     "masterProfile": {
