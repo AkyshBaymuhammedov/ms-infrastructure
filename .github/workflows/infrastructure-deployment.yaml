@@ -35,7 +35,7 @@ jobs:
           name: kubeconfig
           path: ${{ env.KUBECONFIG_PATH }}
 
-  configure-cluster-and-deploy-apps:
+  configure-cluster:
     needs: deploy-cluster
     runs-on: ubuntu-latest
     steps:
