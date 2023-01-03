@@ -57,9 +57,6 @@ jobs:
           kubectl create namespace argocd && \
           kubectl apply -n argocd -f ./argocd/install.yaml
 
-      - name: Wait for ArgoCD to be deployed
-        run: sleep 300s
-
       - name: Deploy manifests
         run: kubectl apply -f ./argocd/manifests-app.yaml
 
@@ -70,8 +67,8 @@ jobs:
     needs: configure-cluster
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for ingress
-        run: sleep 400s
+      - name: Wait for nginx-ingress
+        run: ./wait_4_deploy.sh app=nginx-ingress-nginx-ingress nginx-ingress nginx-ingress
 
       - name: Log in with Azure
         uses: azure/login@v1
@@ -100,7 +97,7 @@ jobs:
         uses: Azure/k8s-set-context@v3.0
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
-        
+
       - name: Helm tool installer
         uses: Azure/setup-helm@v3
         with:
