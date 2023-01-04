@@ -5,5 +5,5 @@ resources:
   - namespaces/nginx-ingress-ns.yaml
   - namespaces/simple-webserver-ns.yaml
   - ingress-resources/master-ingress.yaml
-  # - network-policies/allow-ingress-nginx.yaml
-  # - network-policies/default-deny-all.yaml
+  - network-policies/allow-ingress-nginx.yaml
+  - network-policies/default-deny-all.yaml
