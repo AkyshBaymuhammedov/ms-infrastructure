@@ -41,6 +41,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Log in with Azure
+        uses: azure/login@v1
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
       - name: Get kubeconfig from Azure Key Vault
         run: az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json
 
