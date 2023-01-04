@@ -29,10 +29,11 @@ jobs:
       - name: Retrieve path to kubeconfig
         run: echo "KUBECONFIG_PATH=$(pwd)/$(find _output -name kubeconfig.westeurope.json)" >> $GITHUB_ENV
 
-      - uses: actions/upload-artifact@v2
-        with:
-          name: kubeconfig
-          path: ${{ env.KUBECONFIG_PATH }}
+      - name: Upload kubeconfig to Azure Key Vault
+        run: |
+          cat ${{ env.KUBECONFIG_PATH }} | base64 > KubeConfigInBase64 && \
+          az keyvault secret set --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --disabled false --value @KubeConfigInBase64 && \
+          rm KubeConfigInBase64
 
   configure-cluster:
     needs: deploy-cluster
@@ -40,13 +41,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: kubeconfig
+      - name: Get kubeconfig from Azure Key Vault
+        run: az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json
 
       - name: Set kubeconfig
         id: kubeconfig
-        run: echo "KUBECONFIG=$(cat kubeconfig.westeurope.json | tr -d " \t\n\r")" >> $GITHUB_OUTPUT
+        run: echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_OUTPUT
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
