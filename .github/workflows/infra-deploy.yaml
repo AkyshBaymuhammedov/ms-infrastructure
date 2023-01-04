@@ -47,16 +47,14 @@ jobs:
           creds: '${{ secrets.AZURE_CREDENTIALS }}'
 
       - name: Get kubeconfig from Azure Key Vault
-        run: az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json
-
-      - name: Set kubeconfig
-        id: kubeconfig
-        run: echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_OUTPUT
+        run: |
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ steps.kubeconfig.outputs.KUBECONFIG }}
+          kubeconfig: ${{ env.KUBECONFIG }}
 
       - name: Deploy ArgoCD
         run: |
@@ -69,29 +67,31 @@ jobs:
       - name: Deploy nginx ingress
         run: kubectl apply -f ./argocd/nginx-ingress/nginx-ingress-app.yaml
 
-    outputs:
-      kubeconfig: ${{ steps.kubeconfig.outputs.KUBECONFIG }}
-
   configure-dns:
     needs: configure-cluster
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
+      - name: Log in with Azure
+        uses: azure/login@v1
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+      - name: Get kubeconfig from Azure Key Vault
+        run: |
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ needs.configure-cluster.outputs.kubeconfig }}
+          kubeconfig: ${{ env.KUBECONFIG }}
 
       - name: Wait for nginx-ingress
         run: |
           chmod 700 ./wait_4_deploy.sh && \
           ./wait_4_deploy.sh app=nginx-ingress-nginx-ingress nginx-ingress nginx-ingress
-
-      - name: Log in with Azure
-        uses: azure/login@v1
-        with:
-          creds: '${{ secrets.AZURE_CREDENTIALS }}'
 
       - name: Set DNS label
         run: |
@@ -99,15 +99,25 @@ jobs:
           az network public-ip update -g ${{ secrets.RESOURCE_GROUP }} -n $PUBLIC_IP_NAME --dns-name ${{ secrets.RESOURCE_GROUP }} --allocation-method Static
 
   deploy-apps:
-    needs: [configure-cluster, configure-dns]
+    needs: configure-dns
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
+      - name: Log in with Azure
+        uses: azure/login@v1
+        with:
+          creds: '${{ secrets.AZURE_CREDENTIALS }}'
+
+      - name: Get kubeconfig from Azure Key Vault
+        run: |
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
         with:
-          kubeconfig: ${{ needs.configure-cluster.outputs.kubeconfig }}
+          kubeconfig: ${{ env.KUBECONFIG }}
 
       - name: Helm tool installer
         uses: Azure/setup-helm@v3
