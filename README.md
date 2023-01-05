@@ -9,6 +9,7 @@ A GitOps repo for automatic deployment and configuration of the Kubernetes clust
 * AKS-Engine
 * ArgoCD
 * Kustomize
+* Helm
 * Github Actions
 * Azure
 
