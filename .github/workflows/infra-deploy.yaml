@@ -56,13 +56,10 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
 
-      - name: Create namespace argocd
-        run: |
-          chmod 700 ./create_ns_exists.sh && \
-          ./create_ns_exists.sh argocd
-
       - name: Deploy ArgoCD
-        run: kubectl apply -n argocd -f ./argocd/install.yaml
+        run: |
+          kubectl create ns argocd && \
+          kubectl apply -n argocd -f ./argocd/install.yaml
 
       - name: Deploy manifests
         run: kubectl apply -f ./argocd/manifests-app.yaml
