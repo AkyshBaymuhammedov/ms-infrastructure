@@ -132,6 +132,11 @@ jobs:
       - name: Helm login
         run: helm registry login ${{ secrets.ACR_REGISTRY }}.azurecr.io --username ${{ secrets.ACR_USERNAME }} --password ${{ secrets.ACR_PASSWORD }}
 
+      - name: Check if required manifests were reconciled
+        run: |
+          chmod 700 ./wait_4_ns.sh && \
+          ./wait_4_ns.sh bitcoin-app && ./wait_4_ns.sh simple-webserver
+
       - name: Deploy bitcoin-app
         run: helm upgrade --install bitcoin-app oci://${{ secrets.ACR_REGISTRY }}.azurecr.io/helm/bitcoin-app-helm -n bitcoin-app
 
