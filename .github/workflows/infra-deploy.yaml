@@ -56,10 +56,11 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
 
+      - name: Create namespace argocd
+        run: kubectl create namespace argocd
+
       - name: Deploy ArgoCD
-        run: |
-          kubectl create namespace argocd && \
-          kubectl apply -n argocd -f ./argocd/install.yaml
+        run: kubectl apply -n argocd -f ./argocd/install.yaml
 
       - name: Deploy manifests
         run: kubectl apply -f ./argocd/manifests-app.yaml
