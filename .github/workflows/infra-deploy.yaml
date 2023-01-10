@@ -56,6 +56,9 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
 
+      - name: Wait 1 min for cluster to be set up
+        run: sleep 1m
+
       - name: Deploy ArgoCD
         run: |
           kubectl create ns argocd && \
