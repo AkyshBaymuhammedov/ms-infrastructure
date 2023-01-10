@@ -59,7 +59,7 @@ jobs:
       - name: Wait for kube api server to be ready
         run: |
           chmod 700 ./wait_4_deploy.sh && \
-          ./wait_4_deploy.sh component=kube-apiserver kube-system kube-apiserver
+          sleep 1m && ./wait_4_deploy.sh component=kube-apiserver kube-system kube-apiserver
         
       - name: Deploy ArgoCD
         run: |
