@@ -56,9 +56,11 @@ jobs:
         with:
           kubeconfig: ${{ env.KUBECONFIG }}
 
-      - name: Wait 1 min for cluster to be set up
-        run: sleep 1m
-
+      - name: Wait for kube api server to be ready
+        run: |
+          chmod 700 ./wait_4_deploy.sh && \
+          ./wait_4_deploy.sh component=kube-apiserver kube-system kube-apiserver
+        
       - name: Deploy ArgoCD
         run: |
           kubectl create ns argocd && \
