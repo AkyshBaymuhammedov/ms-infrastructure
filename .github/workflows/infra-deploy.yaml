@@ -27,12 +27,12 @@ jobs:
         run: aks-engine deploy --dns-prefix ${{ secrets.RESOURCE_GROUP }} --resource-group ${{ secrets.RESOURCE_GROUP }} --location ${{ secrets.REGION }} --api-model ${GITHUB_WORKSPACE}/infrastructure/kubernetes.json --auto-suffix --subscription-id ${{ secrets.SUBSCRIPTION_ID }}
 
       - name: Retrieve path to kubeconfig
-        run: echo "KUBECONFIG_PATH=$(pwd)/$(find _output -name kubeconfig.westeurope.json)" >> $GITHUB_ENV
+        run: echo "KUBECONFIG_PATH=$(pwd)/$(find _output -name kubeconfig.${{ secrets.REGION }}.json)" >> $GITHUB_ENV
 
       - name: Upload kubeconfig to Azure Key Vault
         run: |
           cat ${{ env.KUBECONFIG_PATH }} | base64 > KubeConfigInBase64 && \
-          az keyvault secret set --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --disabled false --value @KubeConfigInBase64 && \
+          az keyvault secret set --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-${{ secrets.REGION }} --disabled false --value @KubeConfigInBase64 && \
           rm KubeConfigInBase64
 
   configure-cluster:
@@ -48,8 +48,8 @@ jobs:
 
       - name: Get kubeconfig from Azure Key Vault
         run: |
-          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
-          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-${{ secrets.REGION }} --query value -o tsv | base64 --decode > kubeconfig-${{ secrets.REGION }}.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-${{ secrets.REGION }}.json | tr -d " \t\n\r")" >> $GITHUB_ENV
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
@@ -80,8 +80,8 @@ jobs:
 
       - name: Get kubeconfig from Azure Key Vault
         run: |
-          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
-          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-${{ secrets.REGION }} --query value -o tsv | base64 --decode > kubeconfig-${{ secrets.REGION }}.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-${{ secrets.REGION }}.json | tr -d " \t\n\r")" >> $GITHUB_ENV
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
@@ -111,8 +111,8 @@ jobs:
 
       - name: Get kubeconfig from Azure Key Vault
         run: |
-          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-westeurope --query value -o tsv | base64 --decode > kubeconfig-westeurope.json && \
-          echo "KUBECONFIG=$(cat kubeconfig-westeurope.json | tr -d " \t\n\r")" >> $GITHUB_ENV
+          az keyvault secret show --vault-name ${{ secrets.KEY_VAULT }} --name kubeconfig-${{ secrets.REGION }} --query value -o tsv | base64 --decode > kubeconfig-${{ secrets.REGION }}.json && \
+          echo "KUBECONFIG=$(cat kubeconfig-${{ secrets.REGION }}.json | tr -d " \t\n\r")" >> $GITHUB_ENV
 
       - name: Kubernetes Set Context
         uses: Azure/k8s-set-context@v3.0
